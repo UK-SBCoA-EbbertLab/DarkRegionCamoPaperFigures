@@ -1,0 +1,34 @@
+#!/bin/bash
+#SBATCH --time=120:00:00                                        # Time limit for the job (REQUIRED).
+#SBATCH --job-name=MedRelGenesDarkMapq # Job name
+#SBATCH --ntasks=5                                              # Number of cores for the job. Same as SBATCH -n 1
+#SBATCH --mem=100G                                                # Total memory requested
+#SBATCH --partition=normal                                      # Partition/queue to run the job in. (REQUIRED)
+#SBATCH -e slurm-%j.err                                         # Error file for this job.
+#SBATCH -o slurm-%j.out                                         # Output file for this job.
+#SBATCH -A coa_mteb223_uksr                                     # Project allocation account name (REQUIRED) 
+
+#awk -F"\t" '$2=="protein coding" && $7>50{print $0}' /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27ac_Chip_89yo_AD_Illumina_H3K27ac_chip_89yo_AD-2023_02_27-17.23.40/05-CREATE_BED_FILE/Illumina.H3K27ac_Chip_89yo_AD.percent_camo_genes.txt
+#awk -F"\t" '$2=="protein coding" && $7>50{print $0}' /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27ac_Chip_90yo_MCI_Illumina_H3K27ac_chip_90yo_MCI-2023_02_27-14.38.22/05-CREATE_BED_FILE/Illumina.H3K27ac_Chip_90yo_MCI.percent_camo_genes.txt
+#awk -F"\t" '$2=="protein coding" && $7>50{print $0}' /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27me3_Chip_90yo_MCI_Illumina_H3K27me3_chip_90yo_MCI-2023_02_27-20.11.57/05-CREATE_BED_FILE/Illumina.H3K27me3_Chip_90yo_MCI.percent_camo_genes.txt
+#awk -F"\t" '$2=="protein coding" && $7>50{print $0}' /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results//05-CREATE_BED_FILE/Illumina.H3K27me3_Chip_90yo_MCI.percent_camo_genes.txt
+#awk -F"\t" '$2=="protein coding" && $7>50{print $0}' /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K4me3_Chip_89yo_AD_Illumina_H3K4me3_chip_89yo_AD-2023_02_28-01.15.48/05-CREATE_BED_FILE/Illumina.H3K4me3_Chip_89yo_AD.percent_camo_genes.txt
+#awk -F"\t" '$2=="protein coding" && $7>50{print $0}' /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K4me3_Chip_90yo_MCI_Illumina_H3K4me3_chip_90yo_MCI-2023_02_27-22.50.13/05-CREATE_BED_FILE/Illumina.H3K4me3_Chip_90yo_MCI.percent_camo_genes.txt
+
+
+grep -f geneNames.txt /project/mteb223_uksr/sequencing_resources/annotations/Ensembl/hg38_release_107/Homo_sapiens.GRCh38.107.chr.sorted.gtf | awk -F"\t" '$3=="gene"{print "chr"$1"\t"$4-2000"\t"$5+2000"\t"$9}' > CamoGenesOfInterest.bed
+
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27ac_Chip_89yo_AD_Illumina_H3K27ac_chip_89yo_AD-2023_02_27-17.23.40/02-RUN_DRF/ENCLB660XLU_H3K27ac_rep1_89yo_AD.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB660XLU_H3K27ac_rep1_89yo_AD_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27ac_Chip_89yo_AD_Illumina_H3K27ac_chip_89yo_AD-2023_02_27-17.23.40/02-RUN_DRF/ENCLB116VRJ_H3K27ac_rep2_89yo_AD.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB116VRJ_H3K27ac_rep2_89yo_AD_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27ac_Chip_90yo_MCI_Illumina_H3K27ac_chip_90yo_MCI-2023_02_27-14.38.22/02-RUN_DRF/ENCLB764LQW_H3K27ac_rep2_90yo_MCI.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB764LQW_H3K27ac_rep2_90yo_MCI_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27ac_Chip_90yo_MCI_Illumina_H3K27ac_chip_90yo_MCI-2023_02_27-14.38.22/02-RUN_DRF/ENCLB265FRF_H3K27ac_rep1_90yo_MCI.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB265FRF_H3K27ac_rep1_90yo_MCI_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27me3_Chip_90yo_MCI_Illumina_H3K27me3_chip_90yo_MCI-2023_02_27-20.11.57/02-RUN_DRF/ENCLB466INX_H3K27me3_rep1_90yo_MCI.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB466INX_H3K27me3_rep1_90yo_MCI_CamoGenesOfInterest.bed &
+wait
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K27me3_Chip_90yo_MCI_Illumina_H3K27me3_chip_90yo_MCI-2023_02_27-20.11.57/02-RUN_DRF/ENCLB837AFC_H3K27me3_rep2_90yo_MCI.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB837AFC_H3K27me3_rep2_90yo_MCI_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K4me3_Chip_89yo_AD_Illumina_H3K4me3_chip_89yo_AD-2023_02_28-01.15.48/02-RUN_DRF/ENCLB142GGP_H3K4me3_rep2_89yo_AD.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB142GGP_H3K4me3_rep2_89yo_AD_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K4me3_Chip_89yo_AD_Illumina_H3K4me3_chip_89yo_AD-2023_02_28-01.15.48/02-RUN_DRF/ENCLB308YWZ_H3K4me3_rep1_89yo_AD.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB308YWZ_H3K4me3_rep1_89yo_AD_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K4me3_Chip_90yo_MCI_Illumina_H3K4me3_chip_90yo_MCI-2023_02_27-22.50.13/02-RUN_DRF/ENCLB555ZFE_H3K4me3_rep2_90yo_MCI.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB555ZFE_H3K4me3_rep2_90yo_MCI_CamoGenesOfInterest.bed &
+bedtools intersect -wo -a /scratch/mewa283/LongReadDark/Dark_and_Camouflaged_genes/identify_dark_and_camouflaged_regions-NF/results/H3K4me3_Chip_90yo_MCI_Illumina_H3K4me3_chip_90yo_MCI-2023_02_27-22.50.13/02-RUN_DRF/ENCLB305RHN_H3K4me3_rep1_90yo_MCI.min_depth_-1.min_mapq_mass_-1.mapq_thresh_9.dark.low_mapq.final.bed.gz -b CamoGenesOfInterest.bed > ENCLB305RHN_H3K4me3_rep1_90yo_MCI_CamoGenesOfInterest.bed &
+wait
+
+

@@ -1,0 +1,353 @@
+---
+title: "Epigenetics Camo Genes"
+author: "Mark Wadsworth"
+date: "2023-03-03"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_section: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+```
+
+
+# Load Bed Files
+
+```{r}
+ENCLB142GGP_H3K4me3 = read.table("data/ENCLB142GGP_H3K4me3_rep2_89yo_AD_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB142GGP_H3K4me3$Type = rep("H3K4me3", nrow(ENCLB142GGP_H3K4me3))
+ENCLB142GGP_H3K4me3$Sample = rep("89yoAD", nrow(ENCLB142GGP_H3K4me3))
+ENCLB142GGP_H3K4me3$Rep = rep("2", nrow(ENCLB142GGP_H3K4me3))
+
+ENCLB305RHN_H3K4me3 = read.table("data/ENCLB305RHN_H3K4me3_rep1_90yo_MCI_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB305RHN_H3K4me3$Type = rep("H3K4me3", nrow(ENCLB305RHN_H3K4me3))
+ENCLB305RHN_H3K4me3$Sample = rep("90yoMCI", nrow(ENCLB305RHN_H3K4me3))
+ENCLB305RHN_H3K4me3$Rep = rep("1", nrow(ENCLB305RHN_H3K4me3))
+
+ENCLB466INX_H3K27me3 = read.table("data/ENCLB466INX_H3K27me3_rep1_90yo_MCI_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB466INX_H3K27me3$Type = rep("H3K27me3", nrow(ENCLB466INX_H3K27me3))
+ENCLB466INX_H3K27me3$Sample = rep("90yoMCI", nrow(ENCLB466INX_H3K27me3))
+ENCLB466INX_H3K27me3$Rep = rep("1", nrow(ENCLB466INX_H3K27me3))
+
+ENCLB660XLU_H3K27ac = read.table("data/ENCLB660XLU_H3K27ac_rep1_89yo_AD_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB660XLU_H3K27ac$Type = rep("H3K27ac", nrow(ENCLB660XLU_H3K27ac))
+ENCLB660XLU_H3K27ac$Sample = rep("89yoAD", nrow(ENCLB660XLU_H3K27ac))
+ENCLB660XLU_H3K27ac$Rep = rep("1", nrow(ENCLB660XLU_H3K27ac))
+
+ENCLB837AFC_H3K27me3 = read.table("data/ENCLB837AFC_H3K27me3_rep2_90yo_MCI_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB837AFC_H3K27me3$Type = rep("H3K27me3", nrow(ENCLB837AFC_H3K27me3))
+ENCLB837AFC_H3K27me3$Sample = rep("90yoMCI", nrow(ENCLB837AFC_H3K27me3))
+ENCLB837AFC_H3K27me3$Rep = rep("2", nrow(ENCLB837AFC_H3K27me3))
+
+ENCLB116VRJ_H3K27ac = read.table("data/ENCLB116VRJ_H3K27ac_rep2_89yo_AD_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB116VRJ_H3K27ac$Type = rep("H3K27ac", nrow(ENCLB116VRJ_H3K27ac))
+ENCLB116VRJ_H3K27ac$Sample = rep("89yoAD", nrow(ENCLB116VRJ_H3K27ac))
+ENCLB116VRJ_H3K27ac$Rep = rep("2", nrow(ENCLB116VRJ_H3K27ac))
+
+ENCLB265FRF_H3K27ac = read.table("data/ENCLB265FRF_H3K27ac_rep1_90yo_MCI_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB265FRF_H3K27ac$Type = rep("H3K27ac", nrow(ENCLB265FRF_H3K27ac))
+ENCLB265FRF_H3K27ac$Sample = rep("90yoMCI", nrow(ENCLB265FRF_H3K27ac))
+ENCLB265FRF_H3K27ac$Rep = rep("1", nrow(ENCLB265FRF_H3K27ac))
+
+ENCLB308YWZ_H3K4me3 = read.table("data/ENCLB308YWZ_H3K4me3_rep1_89yo_AD_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB308YWZ_H3K4me3$Type = rep("H3K4me3", nrow(ENCLB308YWZ_H3K4me3))
+ENCLB308YWZ_H3K4me3$Sample = rep("89yoAD", nrow(ENCLB308YWZ_H3K4me3))
+ENCLB308YWZ_H3K4me3$Rep = rep("1", nrow(ENCLB308YWZ_H3K4me3))
+
+ENCLB555ZFE_H3K4me3 = read.table("data/ENCLB555ZFE_H3K4me3_rep2_90yo_MCI_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB555ZFE_H3K4me3$Type = rep("H3K4me3", nrow(ENCLB555ZFE_H3K4me3))
+ENCLB555ZFE_H3K4me3$Sample = rep("90yoMCI", nrow(ENCLB555ZFE_H3K4me3))
+ENCLB555ZFE_H3K4me3$Rep = rep("2", nrow(ENCLB555ZFE_H3K4me3))
+
+ENCLB764LQW_H3K27ac = read.table("data/ENCLB764LQW_H3K27ac_rep2_90yo_MCI_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+ENCLB764LQW_H3K27ac$Type = rep("H3K27ac", nrow(ENCLB764LQW_H3K27ac))
+ENCLB764LQW_H3K27ac$Sample = rep("90yoMCI", nrow(ENCLB764LQW_H3K27ac))
+ENCLB764LQW_H3K27ac$Rep = rep("2", nrow(ENCLB764LQW_H3K27ac))
+
+MotorNeuron_WGBS = read.table("data/MotorNeuronWGBS_CamoGenesOfInterest.bed", header=F, sep="\t", stringsAsFactors = F)
+MotorNeuron_WGBS$Type = rep("WGBS", nrow(MotorNeuron_WGBS))
+MotorNeuron_WGBS$Sample = rep("MotorNeuron", nrow(MotorNeuron_WGBS))
+MotorNeuron_WGBS$Rep = rep("1", nrow(MotorNeuron_WGBS))
+
+H3K4me3_89yoAD = data.frame(chr=ENCLB142GGP_H3K4me3$V1, pos=ENCLB142GGP_H3K4me3$V2, MeanMapQFail=sapply(1:nrow(ENCLB142GGP_H3K4me3), function(i) mean(ENCLB142GGP_H3K4me3[i,"V4"],ENCLB308YWZ_H3K4me3[i,"V4"])), MeanDepth=sapply(1:nrow(ENCLB142GGP_H3K4me3), function(i) mean(ENCLB142GGP_H3K4me3[i,"V5"],ENCLB308YWZ_H3K4me3[i,"V5"])), Sample=ENCLB142GGP_H3K4me3$Sample, Type=ENCLB142GGP_H3K4me3$Type, GeneInfo=ENCLB142GGP_H3K4me3$V10)
+H3K4me3_89yoAD$MeanMapQPass = H3K4me3_89yoAD$MeanDepth-H3K4me3_89yoAD$MeanMapQFail
+H3K4me3_90yoMCI = data.frame(chr=ENCLB305RHN_H3K4me3$V1, pos=ENCLB305RHN_H3K4me3$V2, MeanMapQFail=sapply(1:nrow(ENCLB305RHN_H3K4me3), function(i) mean(ENCLB305RHN_H3K4me3[i,"V4"],ENCLB555ZFE_H3K4me3[i,"V4"])), MeanDepth=sapply(1:nrow(ENCLB305RHN_H3K4me3), function(i) mean(ENCLB305RHN_H3K4me3[i,"V5"],ENCLB555ZFE_H3K4me3[i,"V5"])), Sample=ENCLB305RHN_H3K4me3$Sample, Type=ENCLB305RHN_H3K4me3$Type, GeneInfo=ENCLB305RHN_H3K4me3$V10)
+H3K4me3_90yoMCI$MeanMapQPass = H3K4me3_90yoMCI$MeanDepth-H3K4me3_90yoMCI$MeanMapQFail
+
+
+H3K27me3_90yoMCI = data.frame(chr=ENCLB837AFC_H3K27me3$V1, pos=ENCLB837AFC_H3K27me3$V2, MeanMapQFail=sapply(1:nrow(ENCLB837AFC_H3K27me3), function(i) mean(ENCLB837AFC_H3K27me3[i,"V4"],ENCLB466INX_H3K27me3[i,"V4"])), MeanDepth=sapply(1:nrow(ENCLB837AFC_H3K27me3), function(i) mean(ENCLB837AFC_H3K27me3[i,"V5"],ENCLB466INX_H3K27me3[i,"V5"])), Sample=ENCLB837AFC_H3K27me3$Sample, Type=ENCLB837AFC_H3K27me3$Type, GeneInfo=ENCLB837AFC_H3K27me3$V10)
+H3K27me3_90yoMCI$MeanMapQPass = H3K27me3_90yoMCI$MeanDepth-H3K27me3_90yoMCI$MeanMapQFail
+
+
+H3K27ac_89yoAD = data.frame(chr=ENCLB660XLU_H3K27ac$V1, pos=ENCLB660XLU_H3K27ac$V2, MeanMapQFail=sapply(1:nrow(ENCLB660XLU_H3K27ac), function(i) mean(ENCLB660XLU_H3K27ac[i,"V4"],ENCLB116VRJ_H3K27ac[i,"V4"])), MeanDepth=sapply(1:nrow(ENCLB660XLU_H3K27ac), function(i) mean(ENCLB660XLU_H3K27ac[i,"V5"],ENCLB116VRJ_H3K27ac[i,"V5"])), Sample=ENCLB660XLU_H3K27ac$Sample, Type=ENCLB660XLU_H3K27ac$Type, GeneInfo=ENCLB660XLU_H3K27ac$V10)
+H3K27ac_89yoAD$MeanMapQPass = H3K27ac_89yoAD$MeanDepth-H3K27ac_89yoAD$MeanMapQFail
+
+H3K27ac_90yoMCI = data.frame(chr=ENCLB764LQW_H3K27ac$V1, pos=ENCLB764LQW_H3K27ac$V2, MeanMapQFail=sapply(1:nrow(ENCLB764LQW_H3K27ac), function(i) mean(ENCLB764LQW_H3K27ac[i,"V4"],ENCLB265FRF_H3K27ac[i,"V4"])), MeanDepth=sapply(1:nrow(ENCLB764LQW_H3K27ac), function(i) mean(ENCLB764LQW_H3K27ac[i,"V5"],ENCLB265FRF_H3K27ac[i,"V5"])), Sample=ENCLB764LQW_H3K27ac$Sample, Type=ENCLB764LQW_H3K27ac$Type, GeneInfo=ENCLB764LQW_H3K27ac$V10)
+H3K27ac_90yoMCI$MeanMapQPass = H3K27ac_90yoMCI$MeanDepth-H3K27ac_90yoMCI$MeanMapQFail
+
+wgbs=data.frame(chr=MotorNeuron_WGBS$V1, pos=MotorNeuron_WGBS$V2, MeanMapQFail=MotorNeuron_WGBS[,"V4"], MeanDepth=MotorNeuron_WGBS[,"V5"], Sample=MotorNeuron_WGBS$Sample, Type=MotorNeuron_WGBS$Type, GeneInfo=MotorNeuron_WGBS$V10)
+wgbs$MeanMapQPass = wgbs$MeanDepth-wgbs$MeanMapQFail
+```
+
+# H2AC18
+
+```{r}
+H2AC18_H3K4me3 = rbind(H3K4me3_90yoMCI[grep("H2AC18", H3K4me3_90yoMCI$GeneInfo),], H3K4me3_89yoAD[grep("H2AC18", H3K4me3_89yoAD$GeneInfo),])
+H2AC18_H3K27me3 = H3K27me3_90yoMCI[grep("H2AC18", H3K27me3_90yoMCI$GeneInfo),]
+H2AC18_H3K27ac = rbind(H3K27ac_90yoMCI[grep("H2AC18", H3K27ac_90yoMCI$GeneInfo),], H3K27ac_89yoAD[grep("H2AC18", H3K27ac_89yoAD$GeneInfo),])
+```
+
+## H3K4me3
+
+```{r}
+h2ac18_h3k4me3dark=ggplot(H2AC18_H3K4me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+h2ac18_h3k4me3=ggplot(H2AC18_H3K4me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("H2AC18 H3K4me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## H3K27me3
+
+```{r}
+ggplot(H2AC18_H3K27me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("H2AC18 H3K27me3 Coverage")
+ggplot(H2AC18_H3K27me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("H2AC18 H3K27me3 Coverage")
+```
+
+
+## H3K27ac
+
+```{r}
+ggplot(H2AC18_H3K27ac, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(H2AC18_H3K27ac, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("H2AC18 H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+
+
+# H2AC19
+
+```{r}
+H2AC19_H3K4me3 = rbind(H3K4me3_90yoMCI[grep("H2AC19", H3K4me3_90yoMCI$GeneInfo),], H3K4me3_89yoAD[grep("H2AC19", H3K4me3_89yoAD$GeneInfo),])
+H2AC19_H3K27me3 = H3K27me3_90yoMCI[grep("H2AC19", H3K27me3_90yoMCI$GeneInfo),]
+H2AC19_H3K27ac = rbind(H3K27ac_90yoMCI[grep("H2AC19", H3K27ac_90yoMCI$GeneInfo),], H3K27ac_89yoAD[grep("H2AC19", H3K27ac_89yoAD$GeneInfo),])
+```
+
+## H3K4me3
+
+```{r}
+h2ac19_h3k4me3dark=ggplot(H2AC19_H3K4me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+h2ac19_h3k4me3=ggplot(H2AC19_H3K4me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("H2AC19 H3K4me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## H3K27me3
+
+```{r}
+ggplot(H2AC19_H3K27me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("H2AC19 H3K27me3 Coverage")
+ggplot(H2AC19_H3K27me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("H2AC19 H3K27me3 Coverage")
+```
+
+
+## H3K27ac
+
+```{r}
+ggplot(H2AC19_H3K27ac, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("H2AC19 H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(H2AC19_H3K27ac, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("H2AC19 H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+h2acs = grid.arrange(h2ac18_h3k4me3, h2ac19_h3k4me3, h2ac18_h3k4me3dark, h2ac19_h3k4me3dark,  ncol=2)
+ggsave(h2acs, filename = "H2AC18_H2AC19_H3K4me3.png", width = 10, height = 6, units = "in")
+```
+
+
+# HSPA1A
+
+```{r}
+HSPA1A_wgbs = wgbs[grep("HSPA1A", wgbs$GeneInfo),]
+ggplot(HSPA1A_wgbs, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1A WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+HSPA1A_H3K4me3 = rbind(H3K4me3_90yoMCI[grep("HSPA1A", H3K4me3_90yoMCI$GeneInfo),], H3K4me3_89yoAD[grep("HSPA1A", H3K4me3_89yoAD$GeneInfo),])
+HSPA1A_H3K27me3 = H3K27me3_90yoMCI[grep("HSPA1A", H3K27me3_90yoMCI$GeneInfo),]
+HSPA1A_H3K27ac = rbind(H3K27ac_90yoMCI[grep("HSPA1A", H3K27ac_90yoMCI$GeneInfo),], H3K27ac_89yoAD[grep("HSPA1A", H3K27ac_89yoAD$GeneInfo),])
+```
+
+## H3K4me3
+
+```{r}
+hspa1a_h3k4me3_mapq=ggplot(HSPA1A_H3K4me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+hspa1a_h3k4me3=ggplot(HSPA1A_H3K4me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1A H3K4me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## H3K27me3
+
+```{r}
+ggplot(HSPA1A_H3K27me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("HSPA1A H3K27me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(HSPA1A_H3K27me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1A H3K27me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+
+## H3K27ac
+
+```{r}
+hspa1a_mapq_fig=ggplot(HSPA1A_H3K27ac, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+hspa1a_fig=ggplot(HSPA1A_H3K27ac, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1A H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+# HSPA1B
+
+```{r}
+HSPA1B_H3K4me3 = rbind(H3K4me3_90yoMCI[grep("HSPA1B", H3K4me3_90yoMCI$GeneInfo),], H3K4me3_89yoAD[grep("HSPA1B", H3K4me3_89yoAD$GeneInfo),])
+HSPA1B_H3K27me3 = H3K27me3_90yoMCI[grep("HSPA1B", H3K27me3_90yoMCI$GeneInfo),]
+HSPA1B_H3K27ac = rbind(H3K27ac_90yoMCI[grep("HSPA1B", H3K27ac_90yoMCI$GeneInfo),], H3K27ac_89yoAD[grep("HSPA1B", H3K27ac_89yoAD$GeneInfo),])
+```
+
+## H3K4me3
+
+```{r}
+hspa1b_h3k4me3_mapq=ggplot(HSPA1B_H3K4me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity")  + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+hspa1b_h3k4me3=ggplot(HSPA1B_H3K4me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1B H3K4me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## H3K27me3
+
+```{r}
+ggplot(HSPA1B_H3K27me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("HSPA1B H3K27me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(HSPA1B_H3K27me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1B H3K27me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+
+## H3K27ac
+
+```{r}
+hspa1b_mapq_fig=ggplot(HSPA1B_H3K27ac, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+hspa1b_fig=ggplot(HSPA1B_H3K27ac, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("HSPA1B H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+HSPA1_H3K27ac = grid.arrange(hspa1a_fig, hspa1b_fig, hspa1a_mapq_fig, hspa1b_mapq_fig,  ncol=2)
+ggsave(HSPA1_H3K27ac, filename = "HSPA1A_HSPA1B_H3K27ac.png", width = 10, height = 6, units = "in")
+```
+
+
+```{r}
+HSPA1_H3K4me3 = grid.arrange(hspa1a_h3k4me3, hspa1b_h3k4me3, hspa1a_h3k4me3_mapq, hspa1b_h3k4me3_mapq,  ncol=2)
+ggsave(HSPA1_H3K4me3, filename = "HSPA1A_HSPA1B_H3K4me3.png", width = 10, height = 6, units = "in")
+```
+
+# AMY1A
+
+```{r}
+AMY1A_wgbs = wgbs[grep("AMY1A", wgbs$GeneInfo),]
+AMY1A_wgbs_fig=ggplot(AMY1A_wgbs, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("AMY1A WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+AMY1A_wgbs_fig_mapq=ggplot(AMY1A_wgbs, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) + ylim(c(0,1))
+```
+
+```{r}
+amy1a = grid.arrange(AMY1A_wgbs_fig, AMY1A_wgbs_fig_mapq, ncol=1)
+ggsave(amy1a, filename = "AMY1A_wgbs.png", width = 6, height = 4, units = "in")
+```
+
+# AMY1B
+
+```{r}
+AMY1B_wgbs = wgbs[grep("AMY1B", wgbs$GeneInfo),]
+AMY1B_wgbs_fig=ggplot(AMY1B_wgbs, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("AMY1B WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+AMY1B_wgbs_fig_mapq=ggplot(AMY1B_wgbs, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) + ylim(c(0,1))
+```
+
+```{r}
+amy1b = grid.arrange(AMY1B_wgbs_fig, AMY1B_wgbs_fig_mapq, ncol=1)
+ggsave(amy1b, filename = "AMY1B_wgbs.png", width = 6, height = 4, units = "in")
+```
+
+# AMY1C
+
+```{r}
+AMY1C_wgbs = wgbs[grep("AMY1C", wgbs$GeneInfo),]
+AMY1C_wgbs_fig=ggplot(AMY1C_wgbs, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("AMY1C WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+AMY1C_wgbs_fig_mapq=ggplot(AMY1C_wgbs, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+amy1c = grid.arrange(AMY1C_wgbs_fig, AMY1C_wgbs_fig_mapq, ncol=1)
+ggsave(amy1c, filename = "AMY1C_wgbs.png", width = 6, height = 4, units = "in")
+```
+
+```{r}
+AMY1C_H3K4me3 = rbind(H3K4me3_90yoMCI[grep("AMY1C", H3K4me3_90yoMCI$GeneInfo),], H3K4me3_89yoAD[grep("AMY1C", H3K4me3_89yoAD$GeneInfo),])
+AMY1C_H3K27me3 = H3K27me3_90yoMCI[grep("AMY1C", H3K27me3_90yoMCI$GeneInfo),]
+AMY1C_H3K27ac = rbind(H3K27ac_90yoMCI[grep("AMY1C", H3K27ac_90yoMCI$GeneInfo),], H3K27ac_89yoAD[grep("AMY1C", H3K27ac_89yoAD$GeneInfo),])
+```
+
+## H3K4me3
+
+```{r}
+ggplot(AMY1C_H3K4me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity")  + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("AMY1C H3K4me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(AMY1C_H3K4me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("AMY1C H3K4me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+## H3K27me3
+
+```{r}
+ggplot(AMY1C_H3K27me3, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("AMY1C H3K27me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(AMY1C_H3K27me3, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("AMY1C H3K27me3 Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+
+## H3K27ac
+
+```{r}
+ggplot(AMY1C_H3K27ac, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage MapQ > 10") + theme_bw() + ggtitle("AMY1C H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(AMY1C_H3K27ac, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("AMY1C H3K27ac Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+
+
+
+
+# SMN1
+
+```{r}
+SMN1_wgbs = wgbs[grep("SMN1", wgbs$GeneInfo),]
+ggplot(SMN1_wgbs, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("SMN1 WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(SMN1_wgbs, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("SMN1 WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+# SMN2
+
+```{r}
+SMN2_wgbs = wgbs[grep("SMN2", wgbs$GeneInfo),]
+ggplot(SMN2_wgbs, aes(x=pos, y=MeanDepth, color=Sample)) + geom_line(stat="identity") + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("SMN2 WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+ggplot(SMN2_wgbs, aes(x=pos, y=MeanMapQPass, color=Sample)) + geom_line(stat="identity", ) + xlab("") + ylab("Mean Coverage") + theme_bw() + ggtitle("SMN2 WGBS Coverage") + theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```

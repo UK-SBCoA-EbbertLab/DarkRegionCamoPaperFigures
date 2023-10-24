@@ -1,0 +1,366 @@
+---
+title: "Long vs Short-Read Dark base analysis"
+author: "Mark Wadsworth"
+date: "2023-07-24"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_section: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+library(VennDiagram)
+library(RIdeogram)
+```
+
+
+# Load Data
+
+```{r}
+Illumina100 = read.table("../DRF_PaperApp/data/Illumina100_CHM13/Updated_output_07_17_2023/originalADSP.Illumina_OriginalADSP.T2T_CHM13_v2.0.low_mapq-merged.bed", header=F, sep="\t", stringsAsFactors = F)
+Illumina250 = read.table("../DRF_PaperApp/data/Illumina250_CHM13/Updated_output_07_17_2023/illuminaRL250.IlluminaRL250.T2T_CHM13_v2.0.low_mapq-merged.bed", header=F, sep="\t", stringsAsFactors = F)
+
+shortReadDbM = read.table("data/Illumina100_vs_Illumina250.CHM13.low-mapq.bed", header=F, sep="\t", stringsAsFactors = F)
+Illumina100DbM = read.table("data/Illumina100_vs_Illumina250.CHM13.low-mapq_allIllumina100.bed", header=F, sep="\t", stringsAsFactors = F)
+Illumina250DbM = read.table("data/Illumina100_vs_Illumina250.CHM13.low-mapq_allIllumina250.bed", header=F, sep="\t", stringsAsFactors = F)
+
+ONT = read.table("../DRF_PaperApp/data/ONT_CHM13/TenSamples_10_17_2023/ONT.ONT_1KG.T2T_CHM13_v2.0.low_depth-merged.bed", header=F, sep="\t", stringsAsFactors = F)
+PacBio = read.table("../DRF_PaperApp/data/PacBio_CHM13/Updated_output_07_17_2023/PacBio.PacBio.All1KG.T2T_CHM13_v2.0.low_depth-merged.bed", header=F, sep="\t", stringsAsFactors = F)
+
+longReadDbD = read.table("data/PacBio_vs_ONT.CHM13.low-depth.bed", header=F, sep="\t", stringsAsFactors = F)
+ONTDbD = read.table("data/PacBio_vs_ONT.CHM13.low-depth_allONT.bed", header=F, sep="\t", stringsAsFactors = F)
+PacBioDbD = read.table("data/PacBio_vs_ONT.CHM13.low-depth_allPacBio.bed", header=F, sep="\t", stringsAsFactors = F)
+shortReadDbM.vs.longReadDbD = read.table("data/LongRead.DbD_vs_ShortRead.DbM.bed", header=F, sep="\t", stringsAsFactors = F)
+
+```
+
+```{r}
+longReadSum = sum(longReadDbD$V3-longReadDbD$V2)
+shortReadSum = sum(shortReadDbM$V3-shortReadDbM$V2)
+
+longShortSum = sum(shortReadDbM.vs.longReadDbD$V11)
+
+longShortSum/longReadSum
+
+pdf("LongRead.DbD_vs_ShortRead.DbD.pdf")
+grid.newpage()
+draw.pairwise.venn(longReadSum, shortReadSum, longShortSum, category = c("Long-Read", "Short-Read"), lty = rep("blank", 2), fill = c(rgb(184/255,204/255,123/255,1), rgb(143/255,172/255,198/255,1)), alpha = rep(0.75, 2), cat.pos = c(0, 0), cat.dist = rep(0.025, 2))
+dev.off()
+```
+
+```{r}
+Illumina100Sum = sum(Illumina100$V3 - Illumina100$V2)
+Illumina250Sum = sum(Illumina250$V3 - Illumina250$V2)
+
+
+pdf("ShortRead_DbM_Intersect.pdf")
+grid.newpage()
+draw.pairwise.venn(Illumina100Sum, Illumina250Sum, shortReadSum, category = c("Illumina100", "Illumina250"), lty = rep("blank", 2), fill = c( RColorBrewer::brewer.pal(5, "Set2")[c(1)],  RColorBrewer::brewer.pal(5, "Set2")[c(3)]), alpha = rep(.75, 2), cat.pos = c(0, 0), cat.dist = rep(0.025, 2))
+dev.off()
+```
+
+```{r}
+ONTSum = sum(ONT$V3 - ONT$V2)
+PacBioSum = sum(PacBio$V3 - PacBio$V2)
+
+pdf("LongRead_DbD_Intersect.pdf")
+grid.newpage()
+draw.pairwise.venn(PacBioSum, ONTSum, longReadSum, category = c("PacBio", "ONT"), lty = rep("blank", 2), fill = c( RColorBrewer::brewer.pal(5, "Set2")[c(4)],  RColorBrewer::brewer.pal(5, "Set2")[c(5)]), alpha = rep(0.75, 2), cat.pos = c(0, 0), cat.dist = rep(0.025, 2))
+dev.off()
+```
+
+![](LongRead_DbD_Intersect.pdf)
+
+
+# RMSK Overlap
+
+
+#Venn Diagram
+
+```{r}
+17661514/longReadSum * 100
+
+pdf("RMSK_overlap_LongReadDbD.pdf")
+grid.newpage()
+draw.pairwise.venn(longReadSum, 1697786574, 16643221, category = c("Long Read\nDark-by-Depth", "RMSK bases"), lty = rep("blank", 2), fill = c(rgb(184/255,204/255,123/255,1), "lightblue"), alpha = rep(0.5, 2), cat.pos = c(0, 0), cat.dist = rep(0.025, 2))
+dev.off()
+```
+
+# Barplot
+
+```{r eval=T}
+rmskOverlap = read.table("data/RMSK_IntersectWith_IntersectedLongReadDbD_Regions.txt", header=F, sep="\t", stringsAsFactors = F)
+rmskOverlap$Size = rmskOverlap$V3-rmskOverlap$V2
+rmsk.df = as.data.frame(table(unlist(strsplit(rmskOverlap$V5, ","))))
+
+numberOfRepeats = length(unlist(strsplit(rmskOverlap$V5, ",")))
+numberOfRepeatRegions = nrow(rmskOverlap)
+
+rmsk.df$TypePercent = rmsk.df$Freq/numberOfRepeats*100
+rmsk.df$RegionPercent = rmsk.df$Freq/numberOfRepeatRegions*100
+
+pdf("rmskTypes.pdf")
+ggplot(rmsk.df, aes(x=Var1, y=TypePercent)) + geom_bar(stat="identity") + ylab("Percent of Repeats") + xlab("Repeat Masker Repeat Types") + theme_bw() + theme(axis.text.x = element_text(angle = -45, vjust = 1, hjust = 0))
+dev.off()
+
+ggplot(rmsk.df, aes(x=Var1, y=RegionPercent)) + geom_bar(stat="identity") + ylab("Percent of Repeats per Region") + xlab("Repeat Masker Repeat Types") + theme_bw() + theme(axis.text.x = element_text(angle = -45, vjust = 1, hjust = 0))
+
+```
+
+
+
+
+```{r eval=T}
+longRead_uniqueCHM13 = read.table("data/PacBio_vs_ONT.CHM13.low-depth.size.CHM13Unique.censat.segDups.bed", header=F, sep="\t", stringsAsFactors = F)
+longRead_uniqueCHM13$Region = paste(paste(longRead_uniqueCHM13$V1, longRead_uniqueCHM13$V2, sep=":"), longRead_uniqueCHM13$V3,sep="-")
+
+UniqueRegions = unique(longRead_uniqueCHM13$Region)
+longRead_uniqueCHM13_merged = data.frame(DbDRegion=UniqueRegions, RegionSize=rep(NA, length(UniqueRegions)), BasesUnique2CHM13=rep(NA, length(UniqueRegions)), censatNames=rep(NA, length(UniqueRegions)), trimmedNames=rep(NA, length(UniqueRegions)), censatBases=rep(NA, length(UniqueRegions)))
+rownames(longRead_uniqueCHM13_merged) = UniqueRegions
+
+for(region in UniqueRegions){
+  longRead_uniqueCHM13_merged[region, "RegionSize"] = unique(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V4"])
+  longRead_uniqueCHM13_merged[region, "BasesUnique2CHM13"] = sum(unique(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V8"]))
+  longRead_uniqueCHM13_merged[region, "censatNames"] = paste(unique(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V18"]), collapse=";")
+  longRead_uniqueCHM13_merged[region, "trimmedNames"] =  substr(longRead_uniqueCHM13_merged[region, "censatNames"],1,15)
+  longRead_uniqueCHM13_merged[region, "censatBases"] = sum(unique(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V19"]))
+  longRead_uniqueCHM13_merged[region, "SegDefFirstRegion"] = paste(unique(paste0(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V20"], ":", longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V21"], "-", longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V22"])), collapse=";")
+  longRead_uniqueCHM13_merged[region, "SegDefSecondRegion"] = paste(unique(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V23"]), collapse=";")
+  longRead_uniqueCHM13_merged[region, "SegDefBases"] = sum(unique(longRead_uniqueCHM13[which(longRead_uniqueCHM13$Region == region), "V64"]))
+
+}
+
+
+longRead_uniqueCHM13_merged$SizeMinusCensat = longRead_uniqueCHM13_merged$RegionSize - longRead_uniqueCHM13_merged$censatBases
+longRead_uniqueCHM13_merged$SizeMinusCHM13Unique = longRead_uniqueCHM13_merged$RegionSize - longRead_uniqueCHM13_merged$BasesUnique2CHM13
+longRead_uniqueCHM13_merged$SizeMinusSegDef = longRead_uniqueCHM13_merged$RegionSize - longRead_uniqueCHM13_merged$SegDefBases
+
+
+```
+
+
+```{r eval=T}
+
+ggplot(longRead_uniqueCHM13_merged, aes(x=trimmedNames, y=log10(censatBases+1)))  + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ggplot(longRead_uniqueCHM13_merged, aes(x=RegionSize, y=censatBases)) + geom_point(stat="identity")
+ggplot(longRead_uniqueCHM13_merged, aes(x=log10(RegionSize+1), y=log10(SegDefBases+1))) + geom_point(stat="identity")
+ggplot(longRead_uniqueCHM13_merged, aes(x=RegionSize, y=SegDefBases)) + geom_point(stat="identity")
+ggplot(longRead_uniqueCHM13_merged, aes(x=RegionSize, y=BasesUnique2CHM13)) + geom_point(stat="identity")
+
+ggplot(longRead_uniqueCHM13_merged, aes(x=BasesUnique2CHM13, y=censatBases)) + geom_point(stat="identity")
+
+library(plotly)
+plot_ly(longRead_uniqueCHM13_merged, x=~RegionSize, y=~censatBases, z=~BasesUnique2CHM13) %>% add_markers()
+
+plot_ly(longRead_uniqueCHM13_merged, x=~RegionSize, y=~censatBases, z=~SegDefBases) %>% add_markers()
+
+```
+
+
+
+```{r eval=T}
+PercentRMSK = sum(rmskOverlap$Size) / sum(longRead_uniqueCHM13_merged$RegionSize) * 100
+PercentCHM13Unique = sum(longRead_uniqueCHM13_merged$BasesUnique2CHM13) / sum(longRead_uniqueCHM13_merged$RegionSize) * 100
+PercentCenSat = sum(longRead_uniqueCHM13_merged$censatBases) / sum(longRead_uniqueCHM13_merged$RegionSize) * 100
+PercentSegDef = sum(longRead_uniqueCHM13_merged$SegDefBases) / sum(longRead_uniqueCHM13_merged$RegionSize) * 100
+
+PercentRMSK
+PercentCHM13Unique
+PercentCenSat
+PercentSegDef
+
+PercentOfLongReadDbD=data.frame(Annotation=c("Repetitive\nElements", "CHM13\nUnique", "Centromeric\nSatellites", "Segmental\nDuplication"), Percent=c(PercentRMSK, PercentCHM13Unique, PercentCenSat, PercentSegDef))
+
+pdf("PercentOfLongReadDbD.pdf")
+ggplot(PercentOfLongReadDbD, aes(x=Annotation, y=Percent, fill=Annotation)) + geom_bar(stat="identity") + theme_bw()
+dev.off()
+```
+
+
+
+# ABCA7 VNTR 
+
+
+
+```{r eval=T}
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(ggtranscript)
+
+CHM13_gtf <- rtracklayer::import.gff3("../DarkRegionApp/data/GTFs/ABCA7_CHM13.gff3") 
+HG38_gtf<- rtracklayer::import.gff("../DarkRegionApp/data/GTFs/ABCA7_HG38.gtf") 
+
+CHM13_gtf = CHM13_gtf %>% dplyr::as_tibble()
+HG38_gtf = HG38_gtf %>% dplyr::as_tibble()
+
+ABCA7_chm13 <- CHM13_gtf %>% 
+  dplyr::select(
+    seqnames,
+    start,
+    end,
+    strand,
+    type,
+    gene_name,
+    transcript_name,
+    transcript_biotype
+  )
+
+ABCA7_hg38 <- HG38_gtf %>% 
+  dplyr::select(
+    seqnames,
+    start,
+    end,
+    strand,
+    type,
+    gene_name,
+    transcript_name,
+    transcript_biotype
+  )
+
+
+
+ABCA7_chm13_exons = ABCA7_chm13 %>% dplyr::filter(type == "exon")
+ABCA7_HG38_exons = ABCA7_hg38 %>% dplyr::filter(type == "exon")
+
+
+
+ABCA7_chm13_exons %>%
+    ggplot(aes(
+        xstart = start,
+        xend = end,
+        y = transcript_name
+    )) +
+  geom_range(
+        aes(fill = transcript_biotype)
+    ) +
+   geom_intron(
+        data = to_intron(ABCA7_chm13_exons, "transcript_name"),
+        aes(strand = strand)
+    )
+
+ABCA7_HG38_exons %>%
+    ggplot(aes(
+        xstart = start,
+        xend = end,
+        y = transcript_name
+    )) +
+  geom_range(
+        aes(fill = transcript_biotype)
+    ) +
+   geom_intron(
+        data = to_intron(ABCA7_HG38_exons, "transcript_name"),
+        aes(strand = strand)
+    ) + theme_bw()
+```
+
+```{r eval=T}
+ABCA7_HG38_exons_adjusted = ABCA7_HG38_exons
+ABCA7_HG38_exons_adjusted$start = ABCA7_HG38_exons_adjusted$start-1040107
+ABCA7_HG38_exons_adjusted$end = ABCA7_HG38_exons_adjusted$end-1040107
+ABCA7_HG38_exons_adjusted$Ref = rep("HG38", nrow(ABCA7_HG38_exons_adjusted))
+
+
+ABCA7_chm13_exons_adjusted = ABCA7_chm13_exons
+ABCA7_chm13_exons_adjusted$start = ABCA7_chm13_exons_adjusted$start-1002776
+ABCA7_chm13_exons_adjusted$end = ABCA7_chm13_exons_adjusted$end-1002776
+ABCA7_chm13_exons_adjusted$Ref = rep("CHM13", nrow(ABCA7_chm13_exons_adjusted))
+
+ABCA7_exons_adjusted_merged = rbind(ABCA7_chm13_exons_adjusted, ABCA7_HG38_exons_adjusted)
+
+pdf("ABCA7_HG38_vs_CHM13.pdf", width = 6, height = 4)
+ABCA7_exons_adjusted_merged %>%
+    ggplot(aes(
+        xstart = start,
+        xend = end,
+        y = Ref
+    )) +
+  geom_range(
+        aes(fill = Ref)
+    ) +
+   geom_intron(
+        data = to_intron(ABCA7_exons_adjusted_merged, "Ref"),
+        aes(strand = strand),
+        arrow.min.intron.length = 2000
+    ) + theme_bw() + ggtitle("ABCA7") + ylab("Reference") + xlab("Distance From Start of Gene") + theme(legend.position="none")
+dev.off()
+
+```
+
+# SMN1
+
+```{r eval=T}
+CHM13_gtf <- rtracklayer::import.gff3("../DarkRegionApp/data/GTFs/SMN2_CHM13.gff3") 
+HG38_gtf<- rtracklayer::import.gff("../DarkRegionApp/data/GTFs/SMN2_HG38.gtf") 
+
+CHM13_gtf = CHM13_gtf %>% dplyr::as_tibble()
+HG38_gtf = HG38_gtf %>% dplyr::as_tibble()
+
+SMN2_chm13 <- CHM13_gtf %>% 
+  dplyr::select(
+    seqnames,
+    start,
+    end,
+    strand,
+    type,
+    gene_name,
+    transcript_name,
+    transcript_biotype
+  )
+
+SMN2_hg38 <- HG38_gtf %>% 
+  dplyr::select(
+    seqnames,
+    start,
+    end,
+    strand,
+    type,
+    gene_name,
+    transcript_name,
+    transcript_biotype
+  )
+
+
+
+SMN2_chm13_exons = SMN2_chm13 %>% dplyr::filter(type == "exon")
+SMN2_HG38_exons = SMN2_hg38 %>% dplyr::filter(type == "exon")
+
+
+SMN2_HG38_exons_adjusted = SMN2_HG38_exons
+SMN2_HG38_exons_adjusted$start = SMN2_HG38_exons_adjusted$start-70049686
+SMN2_HG38_exons_adjusted$end = SMN2_HG38_exons_adjusted$end-70049686
+SMN2_HG38_exons_adjusted$Ref = rep("HG38", nrow(SMN2_HG38_exons_adjusted))
+
+
+SMN2_chm13_exons_adjusted = SMN2_chm13_exons
+SMN2_chm13_exons_adjusted$start = SMN2_chm13_exons_adjusted$start-70810752
+SMN2_chm13_exons_adjusted$end = SMN2_chm13_exons_adjusted$end-70810752
+SMN2_chm13_exons_adjusted$Ref = rep("CHM13", nrow(SMN2_chm13_exons_adjusted))
+
+SMN2_exons_adjusted_merged = rbind(SMN2_chm13_exons_adjusted, SMN2_HG38_exons_adjusted)
+
+pdf("SMN2_HG38_vs_CHM13.pdf", width = 6, height = 4)
+SMN2_exons_adjusted_merged %>%
+    ggplot(aes(
+        xstart = start,
+        xend = end,
+        y = Ref
+    )) +
+  geom_range(
+        aes(fill = Ref)
+    ) +
+   geom_intron(
+        data = to_intron(SMN2_exons_adjusted_merged, "Ref"),
+        aes(strand = strand),
+        arrow.min.intron.length = 2000
+    ) + theme_bw() + ggtitle("SMN2") + ylab("Reference") + xlab("Distance From Start of Gene") + theme(legend.position="none")
+dev.off()
+
+```
+
